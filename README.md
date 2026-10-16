@@ -1,39 +1,21 @@
-# Risk of Bias Directory — Hosting Demo
+# Quality Assessment & Risk of Bias Tool Repository
 
-A dependency-free static website demonstrating a searchable directory of assessment tools.
+Static website presenting 80 tool records from Sheet1 of the supplied repository workbook. Includes keyword search, multi-study-type filtering, reported validation/reliability filtering, alphabetical sorting, expandable descriptions/citations/notes and an unchanged Excel download.
 
-**All current records are fictional examples. This prototype must not be used to select an assessment tool.**
+## Source and license
 
-## View locally
+Quality Assessment and Risk of Bias Tool Repository © 2026 by Leila Ledbetter and Stephanie Hendren, licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Original project: https://osf.io/ws824/ . Web adaptation by Sydney Johns. Original data wording is retained with whitespace trimming and grouping of continuation study-type rows. This is a web adaptation, not a new evidence audit or endorsement by the original authors.
 
-Download `index.html` and open it in a browser. Search and study-design filters run entirely in the browser. No installation is required.
+Sheet2 contains one alternate AGREE II entry; it is preserved in the download but not duplicated in the directory. No disciplines, separate validity claims, IRR statistics, or evidence citations have been inferred. Combined source yes/no labels are not proof that validity and reliability have both been established. Source links have not been rechecked.
 
-## Publish with GitHub Pages
+## Publish
 
-1. Open repository **Settings → Pages**.
-2. Under **Build and deployment**, select **Deploy from a branch**.
-3. Select **main** and **/(root)**, then **Save**.
-4. Wait for deployment and use the URL shown by GitHub.
+Settings → Pages → Deploy from a branch → main → /(root) → Save.
+Expected URL once deployed: https://syd-kiwi.github.io/risk-bias-demo/
 
-Expected URL after Pages is enabled: https://syd-kiwi.github.io/risk-bias-demo/
+## Preview and update
 
-Committing these files does not itself confirm Pages is enabled or the site is live.
+Open index.html locally; no build or installation is needed to view the site.
+To regenerate data, run `python import_workbook.py path/to/source.xlsx` with Python and openpyxl installed. This reads Sheet1, preserves its links, groups continuation study types, writes data.js, and copies the unchanged workbook to source-workbook.xlsx. Update the import date in index.html when importing a newer source. The schema is fixed to the supplied workbook: inspect column names before importing a changed template.
 
-## Update the directory
-
-Edit the `records` array in `index.html`. Replace fictional examples with approved tool records only after checking study-design fit, official sources, and validity/reliability evidence. Update the rendering fields to include citations and source links when real records are introduced.
-
-Check search, every filter, no-results behavior, and mobile layout after edits. Check the published URL after a deployment.
-
-## Maintenance and handoff
-
-- Repository owner: Sydney Johns (`syd-kiwi`).
-- Assign a backup maintainer before long-term release.
-- Agree on the data approval process with the project lead.
-- Review links quarterly and document changes in commits.
-- Keep unpublished reviewer notes, credentials, and private research data out of this public repository.
-- No external libraries, build process, backend, or data collection are used.
-
-## Current scope
-
-This is a hosting and interface prototype. It does not score studies, contain vetted instruments, or establish validity or reliability for any instrument.
+Review data changes before publishing. Keep proposed new tools separate until Leila approves them. Preserve source attribution and the noncommercial license. Maintain at least two repository administrators for long-term handoff and review links regularly.
