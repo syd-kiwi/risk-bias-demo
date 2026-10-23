@@ -11,6 +11,14 @@ async function startDirectory() {
   $('count').textContent='Loading tools from the spreadsheet…';
   try {
     data=await WorkbookTools.loadWorkbook();
+    const source=WorkbookTools.sourceInfo;
+    const sourceLink=$('source-link');
+    sourceLink.textContent=source.label;
+    sourceLink.href=source.url;
+    $('download-source').href=source.download;
+    if(source.label==='Google Sheets') $('download-source').removeAttribute('download');
+    $('source-notice').textContent=source.notice;
+    $('source-notice').hidden=!source.notice;
     const types=[...new Set(data.flatMap(r=>r.studyTypes))].sort();
     types.forEach(t=>{const o=node('option',t);o.value=t;$('study').append(o);});
     $('total').textContent=data.length;
