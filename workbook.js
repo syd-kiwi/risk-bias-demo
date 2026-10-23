@@ -1,4 +1,4 @@
-/* Read the repository workbook without a generated data copy. */
+/* Read published Google Sheets data, with an explicit repository backup. */
 (function (root) {
   'use strict';
   const headers = {
@@ -9,9 +9,9 @@
   const normalize = value => String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
   const text = cell => cell && cell.v != null ? String(cell.v).trim() : '';
 
-  function parseWorkbook(bytes) {
+  function parseWorkbook(bytes, format = "xlsx") {
     if (!root.XLSX) throw new Error('The spreadsheet reader could not be loaded.');
-    const workbook = root.XLSX.read(bytes, {type: 'array', cellHTML: false});
+    const workbook = root.XLSX.read(bytes, {type: format === 'csv' ? 'string' : 'array', raw: true, cellHTML: false});
     const sheet = workbook.Sheets.Sheet1;
     if (!sheet || !sheet['!ref']) throw new Error('The workbook needs a sheet named Sheet1.');
     const range = root.XLSX.utils.decode_range(sheet['!ref']);
@@ -33,7 +33,7 @@
         const link = cell(row, 'url');
         records.push({
           name, description: text(cell(row, 'description')), citation: text(cell(row, 'citation')),
-          url: link?.l?.Target || text(link), studyTypes: [],
+          url: (link?.l?.Target || text(link)).replace(/[\u200B-\u200D\uFEFF]/g, ''), studyTypes: [],
           evidence: text(cell(row, 'evidence')), notes: text(cell(row, 'notes')), sourceRow: row + 1
         });
       }
@@ -47,9 +47,44 @@
     return records;
   }
 
+  async function get(url) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, {cache: 'no-store', credentials: 'omit', signal: controller.signal});
+      if (!response.ok) throw new Error('Spreadsheet download failed (' + response.status + ').');
+      return response;
+    } finally { clearTimeout(timer); }
+  }
+
   async function loadWorkbook() {
-    const response = await fetch('source-workbook.xlsx', {cache: 'no-store'});
-    if (!response.ok) throw new Error('The spreadsheet download failed (' + response.status + ').');
+    const configResponse = await get('data-source.json');
+    const config = await configResponse.json();
+    if (config.mode === 'google-sheets') {
+      const sourceUrl = new URL(config.publishedCsvUrl);
+      if (sourceUrl.protocol !== 'https:' || sourceUrl.hostname !== 'docs.google.com') {
+        throw new Error('The Google Sheets source URL is not valid.');
+      }
+      try {
+        const response = await get(sourceUrl.href);
+        const records = parseWorkbook(await response.text(), 'csv');
+        root.WorkbookTools.sourceInfo = {
+          label: 'Google Sheets', url: sourceUrl.href, download: sourceUrl.href, notice: ''
+        };
+        return records;
+      } catch (error) {
+        console.warn('Google Sheets is unavailable; using the saved workbook.', error);
+        root.WorkbookTools.sourceInfo = {
+          label: 'Saved Excel backup', url: 'source-workbook.xlsx', download: 'source-workbook.xlsx',
+          notice: 'Live updates are temporarily unavailable. Showing the saved Excel backup; recent Google Sheets changes may not appear.'
+        };
+      }
+    } else {
+      root.WorkbookTools.sourceInfo = {
+        label: 'Repository spreadsheet', url: 'source-workbook.xlsx', download: 'source-workbook.xlsx', notice: ''
+      };
+    }
+    const response = await get('source-workbook.xlsx');
     return parseWorkbook(await response.arrayBuffer());
   }
   root.WorkbookTools = {parseWorkbook, loadWorkbook};
