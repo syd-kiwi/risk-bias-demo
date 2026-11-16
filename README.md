@@ -39,6 +39,4 @@ See the [Developer README](DEVELOPER_README.md) for the code structure, local se
 
 Repository © 2026 Leila Ledbetter and Stephanie Hendren. [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). [Original OSF repository](https://osf.io/ws824/). Web adaptation by [Sydney Johns](https://github.com/syd-kiwi).
 
-A dated [link and evidence review](https://syd-kiwi.github.io/risk-bias-demo/review.html) is available for the 80 existing entries. It includes a reviewed Excel workbook and 13 candidate families or version updates for Leila to vet. Some publisher access checks remain unresolved. The main directory still reads the approved Google Sheet; candidate tools have not been added to that feed.
-
 Spreadsheet reader: SheetJS Community Edition 0.20.3, Apache 2.0. See [license](vendor/SHEETJS-LICENSE.txt).
