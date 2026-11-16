@@ -31,6 +31,8 @@ To undo an edit in Google Sheets, use **File → Version history → See version
 
 ## For the website maintainer
 
+See the [Developer README](DEVELOPER_README.md) for the code structure, local setup, and instructions for structural changes.
+
 `data-source.json` stores the published Google Sheets CSV link. `source-workbook.xlsx` is the saved backup, not the live source. If the Google Sheet is replaced or publishing is restarted with a new link, update the configuration. The site reads the live feed when visitors open or refresh the page; it does not continuously refresh an already-open page.
 
 ## Credits and license
