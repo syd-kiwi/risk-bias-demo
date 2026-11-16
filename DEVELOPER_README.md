@@ -1,10 +1,30 @@
 # Developer README
 
-Technical guide for future maintainers. For routine tool edits, follow the [main README](README.md).
+Use this guide to find the right file, make a change, and check the result. For everyday tool edits, see the [main README](README.md).
 
-## Run locally
+## 1. Find what you want to change
 
-The site is static HTML, CSS, and JavaScript. There is no package install, build step, backend, or API key. Python 3 is enough to serve it locally:
+| I want to… | Edit here | What to do |
+| --- | --- | --- |
+| Update a tool, description, citation, or link | [Google Sheet](https://docs.google.com/spreadsheets/d/1KPMWEY3MhG0sAQhqclQwoKqnzxfL0F9OlAPWLbLqVQM/edit) | Edit the approved content in **Sheet1**, then refresh the website after a few minutes. |
+| Change the homepage wording or section order | [index.html](index.html) | Find the visible text or section and edit it. |
+| Change colors, spacing, fonts, or table layout | [styles.css](styles.css) | Edit the matching style rule. This also styles the author page. |
+| Update author names, biographies, or photos | [authors.html](authors.html) | Edit the matching author section. Photos are embedded image data URLs. |
+| Change search, filters, sorting, or tool details | [app.js](app.js) | Use the function guide below. Also edit the control or table markup in `index.html` when needed. |
+| Connect a replacement Google Sheet | [data-source.json](data-source.json) | Replace `publishedCsvUrl` with the approved tab's published CSV URL. |
+| Refresh the saved Excel backup | [source-workbook.xlsx](source-workbook.xlsx) | Replace the file with an approved export using the same filename. |
+| Change evidence findings or candidate tools | [review-data.json](review-data.json) | Edit the matching record in `tools` or `candidates`. |
+| Change the review page text, date, counts, or download links | [review.html](review.html) | Edit the displayed values directly; they do not update from JSON automatically. |
+| Change review styling or behavior | [review.css](review.css), [review.js](review.js) | Edit the styles or the review functions below. |
+| Replace downloadable review documents | [downloads/](downloads/) | Replace the relevant file. If its name changes, update links in `review.html`. |
+
+**Adding tools requires Leila's approval.** Keep unapproved candidates in the separate review.
+
+## 2. Preview your changes
+
+For small text edits, use GitHub: open the file, choose the pencil icon, edit, and use **Preview** to review the diff before committing.
+
+For layout or code changes, preview locally with Python 3:
 
 ```bash
 git clone https://github.com/syd-kiwi/risk-bias-demo.git
@@ -12,108 +32,109 @@ cd risk-bias-demo
 python3 -m http.server 8000
 ```
 
-Open <http://localhost:8000/>. Use an HTTP server rather than opening HTML with `file://`, because the JavaScript fetches local files. Internet access is needed for the live Google Sheets feed and external links.
+If you already have the repo, run the last command inside its folder. Open <http://localhost:8000/>. Stop the server with **Ctrl+C**.
 
-## File map
+There is no install or build step. Use the local server because opening an HTML file directly will prevent some data requests from working.
 
-| File | Responsibility |
+## 3. Follow the recipe for your change
+
+### Change homepage text or design
+
+1. Search `index.html` for the words you see on the page.
+2. Edit the text, or move the whole section to change its order.
+3. For appearance, edit the matching class in `styles.css`.
+4. Refresh your preview and check both a wide and narrow window.
+
+Keep element IDs when moving sections: JavaScript uses them. Navigation, logos, and footers are repeated across pages; update each affected page.
+
+### Add a new spreadsheet field
+
+Example: add a **Maintainer** field to each tool.
+
+1. Add a `Maintainer` column to the Google Sheet and Excel backup.
+2. In `workbook.js`, add `maintainer: 'Maintainer'` to the `headers` object.
+3. In the record object inside `parseWorkbook()`, add `maintainer: text(cell(row, 'maintainer'))`.
+4. In `app.js`, add `['Maintainer', r.maintainer]` to the list of detail fields in `render()`.
+5. To make it searchable, add `r.maintainer` to the search field list in `filterRecords()`.
+6. Check both the Google Sheet and backup loading.
+
+Follow the existing comma placement in each object or list. Adding a heading to `headers` makes it required in both data sources. If you want a separate table column, also add its heading in `index.html` and its cell in `render()`.
+
+### Add or change a filter
+
+1. Add the labeled control in `index.html`.
+2. Update `filterRecords()` and its call in `render()` in `app.js`.
+3. In `startDirectory()`, include the new control in loading, event handling, and reset behavior.
+4. Check the new filter alone, with other filters, and after **Clear filters**.
+
+Study type choices come from the spreadsheet automatically. Evidence choices are written directly in `index.html`.
+
+### Replace the data source or backup
+
+In `data-source.json`, keep `mode` set to `"google-sheets"` for live data. Set `publishedCsvUrl` to a **published CSV** URL using HTTPS on `docs.google.com`. A normal editing or sharing URL will not work.
+
+To refresh the backup, export the approved sheet as Excel and replace `source-workbook.xlsx`. Keep the tab named **Sheet1** and the headings below. Every sheet included in the downloadable workbook is public.
+
+The backup is updated manually. To preview it locally, temporarily set `mode` to `"workbook"`, refresh, and restore `"google-sheets"` afterward.
+
+### Update the evidence review
+
+1. Edit findings in `review-data.json`. Copy an existing record as a starting point and keep its field names and value types.
+2. Update the matching documents in `downloads/`.
+3. Update the date, counts, method text, and download labels in `review.html`.
+4. Check the review banner in `index.html` and review description in `README.md`.
+5. Preview both **Existing tools** and **Candidates for Leila**.
+
+The review is a separate dated snapshot. Editing it does not change the main directory or Google Sheet.
+
+## 4. Understand the small amount of code
+
+| File / function | Purpose |
 | --- | --- |
-| `index.html` | Main directory markup, controls, table, and script loading |
-| `app.js` | Directory startup, search, filters, sorting, and table rendering |
-| `workbook.js` | Google Sheets loading, Excel fallback, and spreadsheet parsing |
-| `data-source.json` | Data mode and published Google Sheets CSV URL |
-| `source-workbook.xlsx` | Saved backup used when the live feed fails |
-| `styles.css` | Directory and author page styles |
-| `authors.html` | Author biographies, photos, and profile links |
-| `review.html`, `review.css`, `review.js` | Separate dated evidence review interface |
-| `review-data.json` | Evidence findings, candidates, and review summary |
-| `downloads/` | Reviewed workbook and candidate documents linked from the review page |
-| `vendor/xlsx.mini.min.js` | Bundled SheetJS Community Edition 0.20.3 spreadsheet reader |
-| `vendor/SHEETJS-LICENSE.txt` | SheetJS license |
+| `workbook.js → loadWorkbook()` | Reads configuration, tries Google Sheets, then uses the Excel backup if the live request or parsing fails. |
+| `workbook.js → parseWorkbook()` | Turns spreadsheet rows into tool records. |
+| `app.js → startDirectory()` | Loads records, fills study type choices, and connects controls. |
+| `app.js → filterRecords()` | Applies text search, study type, and evidence filters. |
+| `app.js → render()` | Sorts results and builds the table and expanded details. |
+| `review.js → start()` | Loads review JSON and connects review controls. |
+| `review.js → draw()` | Filters and displays review records. |
+| `review.js → switchMode()` | Switches between existing tools and candidates. |
 
-The Duke logos and author photos are embedded as image data URLs in the HTML. Shared headers and footers are repeated markup, so check all three pages when changing navigation or attribution.
+The main page loads scripts in this order: **SheetJS → workbook.js → app.js**. Keep that order. SheetJS is bundled in `vendor/`; preserve its license.
 
-## How the directory works
+### Spreadsheet rules to preserve
 
-1. `index.html` loads SheetJS, then `workbook.js`, then `app.js` using ordered `defer` scripts.
-2. `startDirectory()` disables controls and calls `WorkbookTools.loadWorkbook()`.
-3. The loader fetches `data-source.json`. With `mode: "google-sheets"`, it fetches the published CSV and parses it with SheetJS.
-4. If fetching or parsing the live CSV fails, it tries `source-workbook.xlsx` and sets a visible backup notice. Any mode other than `google-sheets` loads the workbook directly.
-5. `app.js` uses `WorkbookTools.sourceInfo` to update the source label, download link, and notice. It builds study type options from the returned records, enables controls, and calls `render()`.
-
-Data loads when the page opens or refreshes. There is no periodic polling. A malformed or missing configuration, or an invalid Google URL, fails before the live-feed fallback block. A missing or invalid backup also produces the directory error state.
-
-### Spreadsheet contract
-
-Keep the worksheet named `Sheet1` and the headings in the first row. The parser matches headings after trimming, collapsing whitespace, and lowercasing; column order can change.
-
-| Spreadsheet heading | Record property |
+| Heading in the first row | Property used by JavaScript |
 | --- | --- |
-| `Tool Name` | `name` |
-| `Tool Description` | `description` |
-| `Citation` | `citation` |
-| `Link to tool` | `url` |
-| `Study Type/Intended Use` | `studyTypes` |
-| `Validation/Reliability information published` | `evidence` |
-| `Notes` | `notes` |
+| Tool Name | `name` |
+| Tool Description | `description` |
+| Citation | `citation` |
+| Link to tool | `url` |
+| Study Type/Intended Use | `studyTypes` |
+| Validation/Reliability information published | `evidence` |
+| Notes | `notes` |
 
-All seven headings are required, even if some cells are blank. A nonblank tool name starts a record. A subsequent row with a blank name adds only its study type to the previous record; its other cells are not merged. Duplicate study types within a record are removed. `sourceRow` is the starting spreadsheet row, counted from 1, not a stable tool ID.
+All seven headings are required. Column order can change.
 
-For Excel links, an embedded hyperlink target takes priority over displayed text. CSV has no hyperlink metadata: enter the full URL as visible text in Google Sheets. Sheet2 is ignored by the parser. If a workbook is offered for download, however, all of its sheets are available to the visitor.
+A row with a tool name starts a record. A following row with a blank name adds only its study type to that tool. Keep those rows together. Use full visible URLs in Google Sheets, including `https://`.
 
-### Search and rendering
+### When reorganizing files
 
-`filterRecords()` searches name, description, citation, notes, and study types. It combines the text query with an exact study type filter and a lowercased evidence label filter. Search does not include the tool URL or evidence label. The evidence options in `index.html` are fixed to `yes`, `no`, and blank; study type options are generated from data.
+Keep paths relative so the site works under `/risk-bias-demo/`. Update HTML links, script paths, downloads, and JavaScript fetch paths together. Fetch paths are relative to the page, not the script's folder.
 
-`render()` sorts the filtered records and rebuilds the table. Keep spreadsheet content as text through `textContent` or text nodes. Tool links pass through `safeUrl()`, which permits only HTTP and HTTPS. Preserve this behavior when adding fields.
+Keep `app.js` and `review.js` on separate pages unless you scope their duplicate global helpers. Render spreadsheet content with text nodes or `textContent`, and keep the HTTP/HTTPS link checks.
 
-## Making structural changes
+## 5. Check and publish
 
-### Add or rename a spreadsheet field
+Before committing, check the parts you changed:
 
-1. Update the approved Google Sheet and the saved Excel backup together.
-2. Update the `headers` mapping and record construction in `parseWorkbook()` in `workbook.js`. Adding a heading to the mapping makes it required for both sources.
-3. Update `render()` in `app.js` to display the field. Update `filterRecords()` if it should be searchable.
-4. If adding a table column, update the table header and accessible caption in `index.html`, plus relevant layout rules in `styles.css`.
-5. Check both live and backup loading before publishing. Coordinate required heading changes so visitors do not encounter a partially migrated schema.
+- Text or design: check desktop and narrow layouts, links, and keyboard access.
+- Directory code: check search, combined filters, sorting, clear filters, expanded details, and no results.
+- Data loading: block the Google CSV request in browser developer tools and reload. Confirm the backup notice appears, then unblock it. Missing configuration or an invalid source URL causes an error before fallback.
+- Review content: check both review tabs, counts, dates, and downloads.
 
-### Add a filter or change a control
+For code changes, use a branch and pull request so the diff can be reviewed. This repo has no committed automated test suite.
 
-Update the control markup in `index.html`, then the filtering logic and startup/reset handling in `app.js`. New controls should be disabled during loading, enabled after success, and cleared by the reset button. If you rename an element ID, update every JavaScript reference to it. Keep labels, status announcements, keyboard access, and the empty state working.
+After merging, check the deployment in GitHub **Settings → Pages**, then open [the published website](https://syd-kiwi.github.io/risk-bias-demo/) and verify the change. Google Sheet edits appear after republishing and a page refresh; code and file edits require a site deployment.
 
-### Replace the Google Sheet or refresh the backup
-
-Use a published CSV URL for the approved tab in `data-source.json`; an editor or sharing URL is not the data endpoint. The current loader accepts only HTTPS URLs on `docs.google.com`. Publish only approved public content and keep automatic republishing enabled. Updating an editor sharing link does not update the published CSV configuration.
-
-To refresh the backup, export the approved sheet to Excel and replace `source-workbook.xlsx`, preserving `Sheet1` and the required headings. Verify every included sheet is suitable for public download. The backup is not synchronized automatically, and replacing it does not change the live Google Sheet. To deliberately use only the backup, set `mode` to `"workbook"`.
-
-### Change the evidence review
-
-The review is a separate snapshot. `review.js` fetches `review-data.json`; it does not read the Google Sheet or workbook. The JSON has `tools`, `candidates`, and `summary` properties.
-
-- Existing tool cards read `name`, `category`, `study_types`, `validity`, `reliability`, `version_note`, `evidence_citations`, `doi_links`, `updated_url`, `updated_link_check`, `checked`, and `row`.
-- Candidate cards read `name`, `kind`, `fields`, `study`, `fit`, `evidence`, `vet`, and `links`.
-- Search checks the full JSON record. Category options are generated from existing tools.
-
-When revising a review, update its JSON, the corresponding files in `downloads/`, and the date, scope counts, method text, and download labels in `review.html`. Those displayed dates and counts are hardcoded; `summary` does not update them automatically. Also check the review banner in `index.html` and review description in `README.md`. Keep candidates separate until Leila approves their inclusion in the main collection.
-
-### Move files or split the JavaScript
-
-Paths are relative to the HTML page or current document URL. Moving scripts into a subfolder does not make their `fetch()` paths relative to the script. Update HTML `src`/`href` attributes and fetch paths deliberately, including downloads and fallback links. Preserve relative paths for hosting under `/risk-bias-demo/`.
-
-`workbook.js` exposes `WorkbookTools` on `globalThis`; `app.js` depends on it and SheetJS. Preserve script order. `app.js` and `review.js` each define a global `node()` helper, so keep them on their separate pages or scope them before combining scripts. If introducing modules, update HTML script types and imports together. Update the existing query-string versions on the directory script URLs when needed to avoid stale browser assets.
-
-## Verify and publish
-
-Use a working branch and review the diff before merging. This repository has no committed automated test suite or build workflow. For a structural change, check locally:
-
-- Directory loads, counts populate, and the console has no unexpected errors.
-- Search, combined filters, both name sorts, reset, expanded details, and no-results state work.
-- Block the Google CSV request in browser developer tools, reload, and confirm the saved backup and notice appear. Unblock it afterward.
-- In a local copy, use `mode: "workbook"` and confirm direct backup loading. Restore the configuration afterward. Check the error message with an unavailable backup as well.
-- Open `authors.html` and `review.html`. Check review search, categories, both tabs, navigation, and downloads.
-- Check narrow screens, horizontal table scrolling, keyboard navigation, visible labels, and the skip links.
-
-The public site is <https://syd-kiwi.github.io/risk-bias-demo/>. Verify the actual deployment source in GitHub **Settings → Pages** before changing hosting. After merging, wait for the Pages deployment and check the published pages. Google Sheet content edits need no code deployment; changes to code, configuration, backups, or review files do.
-
-If a code change breaks the site, revert the relevant commit through the normal branch workflow. Restore Google Sheet edits using its version history separately. Preserve the authors' credits, institutional attribution, collection license, and bundled dependency license.
+If needed, revert the code commit. For Google Sheet edits, use **File → Version history**. Keep the author credits, Duke attribution, collection license, and dependency license.
