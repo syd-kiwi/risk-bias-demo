@@ -13,12 +13,8 @@ Use this guide to find the right file, make a change, and check the result. For 
 | Change search, filters, sorting, or tool details | [app.js](app.js) | Use the function guide below. Also edit the control or table markup in `index.html` when needed. |
 | Connect a replacement Google Sheet | [data-source.json](data-source.json) | Replace `publishedCsvUrl` with the approved tab's published CSV URL. |
 | Refresh the saved Excel backup | [source-workbook.xlsx](source-workbook.xlsx) | Replace the file with an approved export using the same filename. |
-| Change evidence findings or candidate tools | [review-data.json](review-data.json) | Edit the matching record in `tools` or `candidates`. |
-| Change the review page text, date, counts, or download links | [review.html](review.html) | Edit the displayed values directly; they do not update from JSON automatically. |
-| Change review styling or behavior | [review.css](review.css), [review.js](review.js) | Edit the styles or the review functions below. |
-| Replace downloadable review documents | [downloads/](downloads/) | Replace the relevant file. If its name changes, update links in `review.html`. |
 
-**Adding tools requires Leila's approval.** Keep unapproved candidates in the separate review.
+**Adding tools requires Leila's approval.** Keep unapproved candidates outside the published directory.
 
 ## 2. Preview your changes
 
@@ -77,16 +73,6 @@ To refresh the backup, export the approved sheet as Excel and replace `source-wo
 
 The backup is updated manually. To preview it locally, temporarily set `mode` to `"workbook"`, refresh, and restore `"google-sheets"` afterward.
 
-### Update the evidence review
-
-1. Edit findings in `review-data.json`. Copy an existing record as a starting point and keep its field names and value types.
-2. Update the matching documents in `downloads/`.
-3. Update the date, counts, method text, and download labels in `review.html`.
-4. Check the review banner in `index.html` and review description in `README.md`.
-5. Preview both **Existing tools** and **Candidates for Leila**.
-
-The review is a separate dated snapshot. Editing it does not change the main directory or Google Sheet.
-
 ## 4. Understand the small amount of code
 
 | File / function | Purpose |
@@ -96,9 +82,6 @@ The review is a separate dated snapshot. Editing it does not change the main dir
 | `app.js → startDirectory()` | Loads records, fills study type choices, and connects controls. |
 | `app.js → filterRecords()` | Applies text search, study type, and evidence filters. |
 | `app.js → render()` | Sorts results and builds the table and expanded details. |
-| `review.js → start()` | Loads review JSON and connects review controls. |
-| `review.js → draw()` | Filters and displays review records. |
-| `review.js → switchMode()` | Switches between existing tools and candidates. |
 
 The main page loads scripts in this order: **SheetJS → workbook.js → app.js**. Keep that order. SheetJS is bundled in `vendor/`; preserve its license.
 
@@ -122,7 +105,7 @@ A row with a tool name starts a record. A following row with a blank name adds o
 
 Keep paths relative so the site works under `/risk-bias-demo/`. Update HTML links, script paths, downloads, and JavaScript fetch paths together. Fetch paths are relative to the page, not the script's folder.
 
-Keep `app.js` and `review.js` on separate pages unless you scope their duplicate global helpers. Render spreadsheet content with text nodes or `textContent`, and keep the HTTP/HTTPS link checks.
+Render spreadsheet content with text nodes or `textContent`, and keep the HTTP/HTTPS link checks.
 
 ## 5. Check and publish
 
@@ -131,7 +114,6 @@ Before committing, check the parts you changed:
 - Text or design: check desktop and narrow layouts, links, and keyboard access.
 - Directory code: check search, combined filters, sorting, clear filters, expanded details, and no results.
 - Data loading: block the Google CSV request in browser developer tools and reload. Confirm the backup notice appears, then unblock it. Missing configuration or an invalid source URL causes an error before fallback.
-- Review content: check both review tabs, counts, dates, and downloads.
 
 For code changes, use a branch and pull request so the diff can be reviewed. This repo has no committed automated test suite.
 
